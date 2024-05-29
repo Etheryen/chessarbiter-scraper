@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"golang.org/x/net/html"
 )
@@ -11,12 +12,12 @@ import (
 const baseURL string = "https://www.chessarbiter.com/index.php"
 
 type SimpleTournament struct {
-	Name     string
-	Date     string
-	Location string
-	Type     string
-	Status   string
-	Href     string
+	Name        string
+	Date        string
+	Location    string
+	TimeControl string
+	Status      string
+	Href        string
 }
 
 func GetByYearMonth(year int, month int) ([]SimpleTournament, error) {
@@ -39,9 +40,7 @@ func GetByYearMonth(year int, month int) ([]SimpleTournament, error) {
 
 	tournaments := processHtml(root)
 
-	fmt.Println(tournaments)
-
-	return nil, nil
+	return tournaments, nil
 }
 
 func getRoot(urlString string) (*html.Node, error) {
@@ -91,15 +90,37 @@ func getSimpleFromTR(tr *html.Node) SimpleTournament {
 	status := tr.FirstChild.LastChild.FirstChild.FirstChild.Data
 	name := tr.FirstChild.NextSibling.FirstChild.FirstChild.Data
 	href := getHrefFromTR(tr)
+	location := getLocationFromTR(tr)
+	timeControl := tr.LastChild.LastChild.FirstChild.Data
 
 	// TODO: get location as first word from another element
 
 	return SimpleTournament{
-		Date:   date,
-		Name:   name,
-		Status: status,
-		Href:   href,
+		Date:        date,
+		Name:        name,
+		Status:      status,
+		Href:        href,
+		Location:    location,
+		TimeControl: timeControl,
 	}
+}
+
+func getLocationFromTR(tr *html.Node) string {
+	location := tr.FirstChild.NextSibling.LastChild.FirstChild.Data
+	location = strings.Split(location, " [")[0]
+	location = strings.TrimSpace(location)
+
+	// TODO: fix for polish language
+
+	if !strings.Contains(location, " ") {
+		location = strings.ToUpper(
+			string(location[0]),
+		) + strings.ToLower(
+			string(location[1:]),
+		)
+	}
+
+	return location
 }
 
 func getHrefFromTR(tr *html.Node) string {

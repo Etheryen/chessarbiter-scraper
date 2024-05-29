@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/etheryen/chessarbiter-scraper/scrape"
+	"github.com/etheryen/chessarbiter-scraper/utils"
 )
 
 func main() {
@@ -20,7 +21,9 @@ func run() error {
 		return err
 	}
 
-	fmt.Println(tournaments)
+	utils.PrintStructSlice(tournaments)
+
+	fmt.Println("\nFound:", len(tournaments))
 
 	return nil
 }
