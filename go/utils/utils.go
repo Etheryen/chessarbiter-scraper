@@ -3,7 +3,19 @@ package utils
 import (
 	"fmt"
 	"reflect"
+	"strings"
+	"unicode/utf8"
 )
+
+func ToCapitalizedUtf8(s string) string {
+	firstRune, size := utf8.DecodeRuneInString(s)
+
+	return strings.ToUpper(
+		string(firstRune),
+	) + strings.ToLower(
+		string(s[size:]),
+	)
+}
 
 func PrintStruct[T any](s T) {
 	v := reflect.ValueOf(s)

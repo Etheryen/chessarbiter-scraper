@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/etheryen/chessarbiter-scraper/utils"
 	"golang.org/x/net/html"
 )
 
@@ -87,13 +88,11 @@ func isInRightTable(n *html.Node) bool {
 
 func getSimpleFromTR(tr *html.Node) SimpleTournament {
 	date := tr.FirstChild.FirstChild.Data
-	status := tr.FirstChild.LastChild.FirstChild.FirstChild.Data
+	status := getStatusFromTR(tr)
 	name := tr.FirstChild.NextSibling.FirstChild.FirstChild.Data
 	href := getHrefFromTR(tr)
 	location := getLocationFromTR(tr)
 	timeControl := tr.LastChild.LastChild.FirstChild.Data
-
-	// TODO: get location as first word from another element
 
 	return SimpleTournament{
 		Date:        date,
@@ -105,19 +104,22 @@ func getSimpleFromTR(tr *html.Node) SimpleTournament {
 	}
 }
 
+func getStatusFromTR(tr *html.Node) string {
+	element := tr.FirstChild.LastChild.FirstChild.FirstChild
+
+	if element != nil {
+		return element.Data
+	}
+	return "zakończony"
+}
+
 func getLocationFromTR(tr *html.Node) string {
 	location := tr.FirstChild.NextSibling.LastChild.FirstChild.Data
 	location = strings.Split(location, " [")[0]
 	location = strings.TrimSpace(location)
 
-	// TODO: fix for polish language
-
 	if !strings.Contains(location, " ") {
-		location = strings.ToUpper(
-			string(location[0]),
-		) + strings.ToLower(
-			string(location[1:]),
-		)
+		location = utils.ToCapitalizedUtf8(location)
 	}
 
 	return location
